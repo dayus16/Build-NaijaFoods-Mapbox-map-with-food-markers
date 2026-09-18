@@ -1,0 +1,146 @@
+import { useRef, useEffect, useState } from "react";
+import * as mapboxgl from "mapbox-gl/esm";
+import "mapbox-gl/dist/mapbox-gl.css";
+import nigeriaFoods from "../data/NigeiaFoods";
+const Map = () => {
+  const mapRef = useRef();
+  const mapContainerRef = useRef();
+  const markersRef = useRef([]);
+  const accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN;
+
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [activeZone, setActiveZone] = useState("all");
+
+  const filteredFoods = nigeriaFoods.filter((food) => {
+    if (activeZone === "all") return true;
+    return food.zone === activeZone;
+  });
+
+  useEffect(() => {
+    mapRef.current = new mapboxgl.Map({
+      accessToken: accessToken,
+      container: mapContainerRef.current,
+      style: "mapbox://styles/mapbox/light-v11",
+      center: [8.6753, 9.082],
+      zoom: 5,
+    });
+
+    mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    return () => {
+      mapRef.current.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+    filteredFoods.forEach((food) => {
+      const isSelected = selectedFood?.id === food.id;
+      const el = document.createElement("div");
+      el.innerHTML = `<div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          cursor: pointer;
+        ">
+          <div style="
+            width: ${isSelected ? "44px" : "36px"};
+            height: ${isSelected ? "44px" : "36px"};
+            background: ${food.zoneColor};
+            border-radius: 50%;
+            border: ${isSelected ? "3px" : "2px"} solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: ${isSelected ? "22px" : "18px"};
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+          ">
+            ${food.emoji}
+          </div>
+          <div style="
+            font-size: 9px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.95);
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            white-space: nowrap;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          ">
+            ${food.dish}
+          </div>
+        </div>`;
+      el.addEventListener("click", () => {
+        setSelectedFood(food);
+
+        mapRef.current.flyTo({
+          center: food.coordinates,
+          zoom: 5,
+          duration: 1200,
+        });
+      });
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: false,
+      }).setHTML(`
+        <div style="font-size:12px;font-weight:600">${food.emoji} ${food.dish}</div>
+        <div style="font-size:10px;color:#666">${food.state} · ${food.zone}</div>
+      `);
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat(food.coordinates)
+        .setPopup(popup)
+        .addTo(mapRef.current);
+
+      markersRef.current.push(marker);
+    });
+  }, [filteredFoods, selectedFood]);
+
+  return (
+    <div>
+      <header className="bg-[#8B1A1A] flex justify-between items-center p-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-gray-300 bg-opacity-20 p-2 rounded-lg text-xl">
+            🍲
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-200">NaijaFoods</h1>
+            <p className="text-red-200 text-xs">
+              Traditional dishes across Nigeria
+            </p>
+          </div>
+        </div>
+        <input
+          type="text"
+          placeholder="Search dishes or states..."
+          className="w-[70%] py-2 px-4 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-white placeholder-red-200 outline-none text-sm"
+        />
+        <div className="flex gap-4">
+          <div className="text-center">
+            <p className="text-white font-bold">36</p>
+            <p className="text-red-200 text-xs">States</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white font-bold">6</p>
+            <p className="text-red-200 text-xs">Zones</p>
+          </div>
+          <div className="text-center">
+            <p className="text-white font-bold">50</p>
+            <p className="text-red-200 text-xs">Dishes</p>
+          </div>
+        </div>
+      </header>
+      <div className="flex">
+        <div className="w-[70%]">
+          <div id="map" ref={mapContainerRef} style={{ height: "100vh" }}></div>
+        </div>
+        <div className="w-[30%]"></div>
+      </div>
+    </div>
+  );
+};
+
+export default Map;
