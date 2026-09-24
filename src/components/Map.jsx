@@ -99,6 +99,16 @@ const Map = () => {
     });
   }, [filteredFoods, selectedFood]);
 
+  const zones = [
+    { value: "all", label: "All zones", color: "#8B1A1A" },
+    { value: "North West", label: "North West", color: "#E07B39" },
+    { value: "North East", label: "North East", color: "#185FA5" },
+    { value: "North Central", label: "North Central", color: "#9b59b6" },
+    { value: "South West", label: "South West", color: "#1D9E75" },
+    { value: "South East", label: "South East", color: "#E24B4A" },
+    { value: "South South", label: "South South", color: "#2C5F2E" },
+  ];
+
   return (
     <div>
       <header className="bg-[#8B1A1A] flex justify-between items-center p-4">
@@ -133,11 +143,70 @@ const Map = () => {
           </div>
         </div>
       </header>
+      <div className="p-3 flex items-center gap-3">
+        <span className="text-xs text-gray-400 mr-1">Filter by zone:</span>
+        {zones.map((zone) => (
+          <button
+            key={zone.value}
+            onClick={() => setActiveZone(zone.value)}
+            className={`py-1 px-3 flex items-center gap-2 border rounded-full text-xs ${activeZone === zone.value ? "font-medium border-2" : "border-gray-300 text-gray-600 bg-white hover:bg-gray-50"}`}
+            style={
+              activeZone === zone.value
+                ? {
+                    background: zone.color + "20",
+                    borderColor: zone.color,
+                    color: zone.color,
+                  }
+                : {}
+            }
+          >
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: zone.color }}
+            ></div>
+            {zone.label}
+          </button>
+        ))}
+      </div>
       <div className="flex">
         <div className="w-[70%]">
           <div id="map" ref={mapContainerRef} style={{ height: "100vh" }}></div>
         </div>
-        <div className="w-[30%]"></div>
+        <div className="w-[30%]">
+          {!selectedFood && (
+            <div className="flex justify-center items-center flex-col p-3">
+              <div className="text-5xl">🍲</div>
+              <h3 className="mt-3 font-semibold text-gray-700">
+                Explore Nigerian Cuisine
+              </h3>
+              <p className="text-center text-sm text-gray-300 mt-3">
+                Click any food pin on the map to learn about traditional
+                Nigerian dishes
+              </p>
+              <div className="grid grid-cols-4 gap-2 w-full mt-7 space-y-2">
+                {filteredFoods.map((food) => (
+                  <div
+                    key={food.id}
+                    onClick={() => {
+                      setSelectedFood(food);
+                      mapRef.current.flyTo({
+                        center: food.coordinates,
+                        zoom: 5,
+                        duration: 1500,
+                      });
+                    }}
+                    className="border border-gray-500 rounded-lg px-2 py-3 text-center cursor-pointer"
+                  >
+                    <span className="text-2xl">{food.emoji}</span>
+                    <p className="text-xs text-gray-500 leading-tight">
+                      {food.dish}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
