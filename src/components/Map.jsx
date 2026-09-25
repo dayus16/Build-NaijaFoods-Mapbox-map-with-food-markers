@@ -138,7 +138,7 @@ const Map = () => {
             <p className="text-red-200 text-xs">Zones</p>
           </div>
           <div className="text-center">
-            <p className="text-white font-bold">50</p>
+            <p className="text-white font-bold">{nigeriaFoods.length}</p>
             <p className="text-red-200 text-xs">Dishes</p>
           </div>
         </div>
@@ -168,11 +168,11 @@ const Map = () => {
           </button>
         ))}
       </div>
-      <div className="flex">
-        <div className="w-[70%]">
-          <div id="map" ref={mapContainerRef} style={{ height: "100vh" }}></div>
+      <div className="flex w-full h-[calc(100vh-150px)]">
+        <div className="w-[70%] h-full">
+          <div id="map" ref={mapContainerRef} className="w-full h-full"></div>
         </div>
-        <div className="w-[30%]">
+        <div className="w-[30%] h-full overflow-y-auto">
           {!selectedFood && (
             <div className="flex justify-center items-center flex-col p-3">
               <div className="text-5xl">🍲</div>
@@ -203,6 +203,118 @@ const Map = () => {
                     </p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+          {selectedFood && (
+            <div>
+              <div
+                className="p-3 h-30"
+                style={{
+                  background: `linear-gradient(135deg, ${selectedFood.zoneColor}, ${selectedFood.zoneColor}88)`,
+                }}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="text-xs font-semibold text-gray-300">
+                    {selectedFood.zone}
+                  </div>
+
+                  <button
+                    className="h-7 w-7 rounded-full bg-white text-black cursor-pointer flex justify-center items-center font-medium"
+                    onClick={() => {
+                      setSelectedFood(null);
+                      mapRef.current.flyTo({
+                        center: [8.6753, 9.082],
+                        zoom: 5,
+                        duration: 1200,
+                      });
+                    }}
+                  >
+                    x
+                  </button>
+                </div>
+
+                <div className="flex justify-center items-center">
+                  <h1 className="text-5xl">{selectedFood.emoji}</h1>
+                </div>
+              </div>
+
+              <div className="mt-2 p-3">
+                <p className="text-xs text-gray-400">
+                  📍 {selectedFood.state} · {selectedFood.zone}
+                </p>
+                <h2 className="mt-3 text-xl font-bold text-gray-700">
+                  {selectedFood.dish}
+                </h2>
+                <p className="leading-relaxed text-sm mt-3 text-gray-600">
+                  {selectedFood.description}
+                </p>
+                <h2
+                  className="text-lg
+                 font-semibold mt-4 text-gray-600"
+                >
+                  Key ingredients
+                </h2>
+                <div
+                  className="flex gap-2
+                     flex-wrap mt-2"
+                >
+                  {selectedFood.ingredients.map((ingredient, i) => (
+                    <div key={i}>
+                      <p className="text-xs bg-gray-100 rounded-full py-1.5 px-4 text-gray-600">
+                        {ingredient}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <h2
+                  className="text-lg
+                 font-semibold mt-4 text-gray-600"
+                >
+                  Also popular in
+                </h2>
+                <div
+                  className="flex gap-2
+                     flex-wrap mt-2"
+                >
+                  {selectedFood.alsoPopularIn.map((popular, i) => (
+                    <div key={i}>
+                      <p
+                        className="text-xs rounded-full py-1.5 px-4 text-white"
+                        style={{ background: selectedFood.zoneColor }}
+                      >
+                        {popular}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-4 border-t">
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://www.google.com/search?q=how+to+cook+${selectedFood.dish}+Nigerian+recipe`,
+                        "_blank",
+                      )
+                    }
+                    className="mt-3 py-1.5 px-4 w-70 rounded-lg text-sm text-white cursor-pointer"
+                    style={{ background: selectedFood.zoneColor }}
+                  >
+                    🔍 Find recipe
+                  </button>
+                  <button
+                    className="mt-3 border border-gray-300 py-1.5 px-4 rounded-lg text-sm text-gray-600 cursor-pointer"
+                    onClick={() => {
+                      setSelectedFood(null);
+                      mapRef.current.flyTo({
+                        center: [8.6753, 9.082],
+                        zoom: 5,
+                        duration: 1200,
+                      });
+                    }}
+                  >
+                    ← Back
+                  </button>
+                </div>
               </div>
             </div>
           )}
